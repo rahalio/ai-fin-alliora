@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+  title: Alliora Alerts
+  version: 0.1.0
+  description: |
+    Platform-risk alerts when a distributor captures interface power (BR-9).
+  license:
+    name: Proprietary
+  x-domain: alt
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Alerts
+    description: Platform-risk queue
+paths:
+  /v1/alerts:
+    get:
+      operationId: listPlatformRiskAlerts
+      tags: [Alerts]
+      x-repository: PlatformRiskAlert
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, acknowledged, escalated, closed]
+      responses:
+        '200':
+          description: Alerts
+          content:
+            application/json:
+              schema:
+                $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: raisePlatformRiskAlert
+      tags: [Alerts]
+      x-repository: PlatformRiskAlert
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertCreate
+      responses:
+        '201':
+          description: Raised
+          content:
+            application/json:
+              schema:
+                $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/alerts/{alertId}:
+    get:
+      operationId: getPlatformRiskAlert
+      tags: [Alerts]
+      x-repository: PlatformRiskAlert
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertId
+      responses:
+        '200':
+          description: Alert
+          content:
+            application/json:
+              schema:
+                $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/alerts/{alertId}/acknowledge:
+    post:
+      operationId: acknowledgePlatformRiskAlert
+      tags: [Alerts]
+      x-repository: PlatformRiskAlert
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Acknowledged
+          content:
+            application/json:
+              schema:
+                $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/alerts/{alertId}/escalate:
+    post:
+      operationId: escalatePlatformRiskAlert
+      tags: [Alerts]
+      summary: Escalate to CSO / renegotiation
+      x-repository: PlatformRiskAlert
+      parameters:
+        - name: alertId
+          in: path
+          required: true
+          schema:
+            $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertEscalate
+      responses:
+        '200':
+          description: Escalated
+          content:
+            application/json:
+              schema:
+                $ref: ./alerts.schemas.yaml#/components/schemas/PlatformRiskAlertResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

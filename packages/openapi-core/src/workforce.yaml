@@ -1,0 +1,136 @@
+openapi: 3.1.0
+info:
+  title: Alliora Workforce
+  version: 0.1.0
+  description: |
+    Bionic workforce role maps; HR/conduct sign-off before automation scale (BR-10).
+  license:
+    name: Proprietary
+  x-domain: bio
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Workforce
+    description: Augment vs replace role maps
+paths:
+  /v1/workforce-maps:
+    get:
+      operationId: listBionicRoleMaps
+      tags: [Workforce]
+      x-repository: BionicRoleMap
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Maps
+          content:
+            application/json:
+              schema:
+                $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createBionicRoleMap
+      tags: [Workforce]
+      x-repository: BionicRoleMap
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/workforce-maps/{mapId}:
+    get:
+      operationId: getBionicRoleMap
+      tags: [Workforce]
+      x-repository: BionicRoleMap
+      parameters:
+        - name: mapId
+          in: path
+          required: true
+          schema:
+            $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapId
+      responses:
+        '200':
+          description: Map
+          content:
+            application/json:
+              schema:
+                $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/workforce-maps/{mapId}/hr-signoff:
+    post:
+      operationId: signBionicRoleMap
+      tags: [Workforce]
+      summary: HR/conduct sign-off; unsigned blocks automation scale
+      x-repository: BionicRoleMap
+      parameters:
+        - name: mapId
+          in: path
+          required: true
+          schema:
+            $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapSignoff
+      responses:
+        '200':
+          description: Signed
+          content:
+            application/json:
+              schema:
+                $ref: ./workforce.schemas.yaml#/components/schemas/BionicRoleMapResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

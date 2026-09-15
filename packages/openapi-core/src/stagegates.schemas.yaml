@@ -1,0 +1,159 @@
+openapi: 3.1.0
+info:
+  title: Alliora stage-gate schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    StageGateId:
+      type: string
+      pattern: '^gat_[0-9A-HJKMNP-TV-Z]{26}$'
+    EvidencePackId:
+      type: string
+      pattern: '^evi_[0-9A-HJKMNP-TV-Z]{26}$'
+    StageGate:
+      type: object
+      required: [gateId, capabilityId, dayMarker, status, createdAt]
+      properties:
+        gateId:
+          $ref: '#/components/schemas/StageGateId'
+        capabilityId:
+          type: string
+        dayMarker:
+          type: integer
+          enum: [30, 90, 180]
+        status:
+          type: string
+          enum: [pending, pass, kill, scale, extend]
+        evidencePackId:
+          type: string
+        outcomeRationale:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "STAGEGATE"
+        pkPatternTemplate: "STAGEGATE#${gateId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    StageGateCreate:
+      type: object
+      required: [capabilityId, dayMarker]
+      properties:
+        capabilityId:
+          type: string
+        dayMarker:
+          type: integer
+          enum: [30, 90, 180]
+    StageGateOutcomeRequest:
+      type: object
+      required: [outcome]
+      properties:
+        outcome:
+          type: string
+          enum: [pass, kill, scale, extend]
+        rationale:
+          type: string
+    EvidencePack:
+      type: object
+      required: [evidencePackId, gateId, switchingMateriality, unitEconomicsPass, attachedAt]
+      properties:
+        evidencePackId:
+          $ref: '#/components/schemas/EvidencePackId'
+        gateId:
+          $ref: '#/components/schemas/StageGateId'
+        switchingMateriality:
+          type: boolean
+        unitEconomicsPass:
+          type: boolean
+        operationalRiskNotes:
+          type: string
+        attachedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "EVIDENCEPACK"
+        pkPatternTemplate: "EVIDENCEPACK#${evidencePackId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    EvidencePackCreate:
+      type: object
+      required: [switchingMateriality, unitEconomicsPass]
+      properties:
+        switchingMateriality:
+          type: boolean
+        unitEconomicsPass:
+          type: boolean
+        operationalRiskNotes:
+          type: string
+    StageGateResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/StageGate'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    StageGateListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/StageGate'
+        nextCursor:
+          type: string
+    StageGateListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/StageGateListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    EvidencePackResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/EvidencePack'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    EvidencePackListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidencePack'
+        nextCursor:
+          type: string
+    EvidencePackListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/EvidencePackListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

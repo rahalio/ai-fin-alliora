@@ -1,0 +1,198 @@
+openapi: 3.1.0
+info:
+  title: Alliora capability schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    CapabilityId:
+      type: string
+      pattern: '^cap_[0-9A-HJKMNP-TV-Z]{26}$'
+    DisruptiveForce:
+      type: string
+      enum: [costCommoditization, profitRedistribution, experienceOwnership, platformsRising, dataMonetization, bionicWorkforce, systemicallyImportantTechs, financialRegionalization]
+    ValueChainPosition:
+      type: string
+      enum: [manufacture, distribute, infrastructure, data, labourAugmentation]
+    Capability:
+      type: object
+      required: [capabilityId, name, sourceType, status, economicOwner, createdAt, updatedAt]
+      properties:
+        capabilityId:
+          $ref: '#/components/schemas/CapabilityId'
+        name:
+          type: string
+        vendorName:
+          type: string
+        sourceType:
+          type: string
+          enum: [fintech, utility, internalBuild, acquisition]
+        status:
+          type: string
+          enum: [intake, tagged, inPilot, scaled, killed]
+        forces:
+          type: array
+          items:
+            $ref: '#/components/schemas/DisruptiveForce'
+        valueChainPosition:
+          $ref: '#/components/schemas/ValueChainPosition'
+        economicOwner:
+          type: string
+        scorecardNotes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "CAPABILITY"
+        pkPatternTemplate: "CAPABILITY#${capabilityId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    CapabilityCreate:
+      type: object
+      required: [name, sourceType, economicOwner]
+      properties:
+        name:
+          type: string
+        sourceType:
+          type: string
+          enum: [fintech, utility, internalBuild, acquisition]
+        economicOwner:
+          type: string
+        vendorName:
+          type: string
+    CapabilityUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        vendorName:
+          type: string
+        economicOwner:
+          type: string
+        scorecardNotes:
+          type: string
+        status:
+          type: string
+          enum: [intake, tagged, inPilot, scaled, killed]
+    ForceTagRequest:
+      type: object
+      required: [forces, valueChainPosition]
+      properties:
+        forces:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/DisruptiveForce'
+        valueChainPosition:
+          $ref: '#/components/schemas/ValueChainPosition'
+    RegionalConstraintId:
+      type: string
+      pattern: '^rgn_[0-9A-HJKMNP-TV-Z]{26}$'
+    RegionalConstraint:
+      type: object
+      required: [regionalConstraintId, capabilityId, region, constraintType, createdAt]
+      properties:
+        regionalConstraintId:
+          $ref: '#/components/schemas/RegionalConstraintId'
+        capabilityId:
+          $ref: '#/components/schemas/CapabilityId'
+        region:
+          type: string
+        constraintType:
+          type: string
+          enum: [licence, dataResidency, conduct]
+        blocksCopyPaste:
+          type: boolean
+        notes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "REGIONALCONSTRAINT"
+        pkPatternTemplate: "REGIONALCONSTRAINT#${regionalConstraintId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    RegionalConstraintCreate:
+      type: object
+      required: [capabilityId, region, constraintType]
+      properties:
+        capabilityId:
+          $ref: '#/components/schemas/CapabilityId'
+        region:
+          type: string
+        constraintType:
+          type: string
+          enum: [licence, dataResidency, conduct]
+        blocksCopyPaste:
+          type: boolean
+        notes:
+          type: string
+    CapabilityResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/Capability'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    CapabilityListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Capability'
+        nextCursor:
+          type: string
+    CapabilityListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/CapabilityListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    RegionalConstraintResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/RegionalConstraint'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    RegionalConstraintListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegionalConstraint'
+        nextCursor:
+          type: string
+    RegionalConstraintListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/RegionalConstraintListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

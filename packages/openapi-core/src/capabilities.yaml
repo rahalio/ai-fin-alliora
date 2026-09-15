@@ -1,0 +1,230 @@
+openapi: 3.1.0
+info:
+  title: Alliora Capabilities
+  version: 0.1.0
+  description: |
+    Capability intake, eight-force taxonomy, value-chain position, and regionalisation constraints.
+  license:
+    name: Proprietary
+  x-domain: cap
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Capabilities
+    description: Capability intake and force taxonomy
+  - name: RegionalConstraints
+    description: Licence, residency, and conduct blocks (BR-8)
+paths:
+  /v1/capabilities:
+    get:
+      operationId: listCapabilities
+      tags: [Capabilities]
+      summary: List capabilities
+      x-repository: Capability
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: force
+          in: query
+          schema:
+            type: string
+            enum: [costCommoditization, profitRedistribution, experienceOwnership, platformsRising, dataMonetization, bionicWorkforce, systemicallyImportantTechs, financialRegionalization]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [intake, tagged, inPilot, scaled, killed]
+      responses:
+        '200':
+          description: Capabilities page
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createCapability
+      tags: [Capabilities]
+      summary: Intake a capability (fintech, utility, internal build, acquisition)
+      x-repository: Capability
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '409':
+          $ref: ./common/responses.yaml#/components/responses/Conflict
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/capabilities/{capabilityId}:
+    parameters:
+      - name: capabilityId
+        in: path
+        required: true
+        schema:
+          $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityId
+    get:
+      operationId: getCapability
+      tags: [Capabilities]
+      summary: Get capability scorecard
+      x-repository: Capability
+      responses:
+        '200':
+          description: Capability
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateCapability
+      tags: [Capabilities]
+      summary: Update capability metadata
+      x-repository: Capability
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityUpdate
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/capabilities/{capabilityId}/force-tags:
+    parameters:
+      - name: capabilityId
+        in: path
+        required: true
+        schema:
+          $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityId
+    post:
+      operationId: tagCapabilityForces
+      tags: [Capabilities]
+      summary: Tag eight forces and primary value-chain position (BR-1)
+      x-repository: Capability
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./capabilities.schemas.yaml#/components/schemas/ForceTagRequest
+      responses:
+        '200':
+          description: Tagged
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/regional-constraints:
+    get:
+      operationId: listRegionalConstraints
+      tags: [RegionalConstraints]
+      summary: List regionalisation constraints
+      x-repository: RegionalConstraint
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            $ref: ./capabilities.schemas.yaml#/components/schemas/CapabilityId
+      responses:
+        '200':
+          description: Constraints
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/RegionalConstraintListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createRegionalConstraint
+      tags: [RegionalConstraints]
+      summary: Record licence, residency, or conduct constraint (BR-8)
+      x-repository: RegionalConstraint
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./capabilities.schemas.yaml#/components/schemas/RegionalConstraintCreate
+      responses:
+        '201':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                $ref: ./capabilities.schemas.yaml#/components/schemas/RegionalConstraintResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

@@ -1,0 +1,196 @@
+openapi: 3.1.0
+info:
+  title: Alliora SIT schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    SitDependencyId:
+      type: string
+      pattern: '^sit_[0-9A-HJKMNP-TV-Z]{26}$'
+    SitLimitExceptionId:
+      type: string
+      pattern: '^lim_[0-9A-HJKMNP-TV-Z]{26}$'
+    SitDependency:
+      type: object
+      required: [dependencyId, vendorName, capabilityArea, concentrationScore, exitPlanPresent, spendBlocked, createdAt]
+      properties:
+        dependencyId:
+          $ref: '#/components/schemas/SitDependencyId'
+        vendorName:
+          type: string
+        capabilityArea:
+          type: string
+          enum: [cloud, data, model, payments, kyc, other]
+        concentrationScore:
+          type: number
+          format: float
+        concentrationLimit:
+          type: number
+          format: float
+        exitPlanPresent:
+          type: boolean
+        exitPlanSummary:
+          type: string
+        boardVisible:
+          type: boolean
+        spendBlocked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "SITDEPENDENCY"
+        pkPatternTemplate: "SITDEPENDENCY#${dependencyId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    SitDependencyCreate:
+      type: object
+      required: [vendorName, capabilityArea, concentrationScore, exitPlanPresent]
+      properties:
+        vendorName:
+          type: string
+        capabilityArea:
+          type: string
+          enum: [cloud, data, model, payments, kyc, other]
+        concentrationScore:
+          type: number
+          format: float
+        concentrationLimit:
+          type: number
+          format: float
+        exitPlanPresent:
+          type: boolean
+        exitPlanSummary:
+          type: string
+        boardVisible:
+          type: boolean
+    SitDependencyUpdate:
+      type: object
+      properties:
+        concentrationScore:
+          type: number
+          format: float
+        exitPlanPresent:
+          type: boolean
+        exitPlanSummary:
+          type: string
+        boardVisible:
+          type: boolean
+    SitSpendBlock:
+      type: object
+      required: [dependencyId, spendBlocked, reasons]
+      properties:
+        dependencyId:
+          $ref: '#/components/schemas/SitDependencyId'
+        spendBlocked:
+          type: boolean
+        reasons:
+          type: array
+          items:
+            type: string
+    SitLimitException:
+      type: object
+      required: [exceptionId, dependencyId, status, rationale, createdAt]
+      properties:
+        exceptionId:
+          $ref: '#/components/schemas/SitLimitExceptionId'
+        dependencyId:
+          $ref: '#/components/schemas/SitDependencyId'
+        status:
+          type: string
+          enum: [requested, approved, denied]
+        rationale:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "SITLIMITEXCEPTION"
+        pkPatternTemplate: "SITLIMITEXCEPTION#${exceptionId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    SitLimitExceptionCreate:
+      type: object
+      required: [dependencyId, rationale]
+      properties:
+        dependencyId:
+          $ref: '#/components/schemas/SitDependencyId'
+        rationale:
+          type: string
+    SitDependencyResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SitDependency'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    SitDependencyListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SitDependency'
+        nextCursor:
+          type: string
+    SitDependencyListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SitDependencyListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    SitSpendBlockResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SitSpendBlock'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    SitLimitExceptionResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SitLimitException'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    SitLimitExceptionListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SitLimitException'
+        nextCursor:
+          type: string
+    SitLimitExceptionListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/SitLimitExceptionListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

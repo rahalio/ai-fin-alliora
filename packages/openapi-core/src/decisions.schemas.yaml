@@ -1,0 +1,327 @@
+openapi: 3.1.0
+info:
+  title: Alliora decision schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    DecisionId:
+      type: string
+      pattern: '^dcs_[0-9A-HJKMNP-TV-Z]{26}$'
+    ProfitPoolId:
+      type: string
+      pattern: '^pph_[0-9A-HJKMNP-TV-Z]{26}$'
+    CostCompareId:
+      type: string
+      pattern: '^ccc_[0-9A-HJKMNP-TV-Z]{26}$'
+    PartnershipContractId:
+      type: string
+      pattern: '^pct_[0-9A-HJKMNP-TV-Z]{26}$'
+    DecisionClass:
+      type: object
+      required: [decisionId, capabilityId, decision, economicOwner, decidedAt]
+      properties:
+        decisionId:
+          $ref: '#/components/schemas/DecisionId'
+        capabilityId:
+          type: string
+        decision:
+          type: string
+          enum: [mutualise, externalise, automate, build, invest, decline]
+        economicOwner:
+          type: string
+        rationale:
+          type: string
+        decidedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "DECISIONCLASS"
+        pkPatternTemplate: "DECISIONCLASS#${decisionId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    DecisionClassCreate:
+      type: object
+      required: [capabilityId, decision, economicOwner]
+      properties:
+        capabilityId:
+          type: string
+        decision:
+          type: string
+          enum: [mutualise, externalise, automate, build, invest, decline]
+        economicOwner:
+          type: string
+        rationale:
+          type: string
+    ProfitPoolHypothesis:
+      type: object
+      required: [hypothesisId, capabilityId, whoGains, whoLoses, createdAt]
+      properties:
+        hypothesisId:
+          $ref: '#/components/schemas/ProfitPoolId'
+        capabilityId:
+          type: string
+        whoGains:
+          type: string
+        whoLoses:
+          type: string
+        manufacturerMarginNote:
+          type: string
+        distributorMarginNote:
+          type: string
+        tested:
+          type: boolean
+        resultNotes:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "PROFITPOOLHYPOTHESIS"
+        pkPatternTemplate: "PROFITPOOLHYPOTHESIS#${hypothesisId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    ProfitPoolHypothesisCreate:
+      type: object
+      required: [capabilityId, whoGains, whoLoses]
+      properties:
+        capabilityId:
+          type: string
+        whoGains:
+          type: string
+        whoLoses:
+          type: string
+        manufacturerMarginNote:
+          type: string
+        distributorMarginNote:
+          type: string
+    ProfitPoolTestAttach:
+      type: object
+      required: [tested, resultNotes]
+      properties:
+        tested:
+          type: boolean
+        resultNotes:
+          type: string
+    CostCompare:
+      type: object
+      required: [costCompareId, capabilityId, duplicateSpendAmount, mutualiseSpendAmount, createdAt]
+      properties:
+        costCompareId:
+          $ref: '#/components/schemas/CostCompareId'
+        capabilityId:
+          type: string
+        duplicateSpendAmount:
+          $ref: ./common/primitives.yaml#/components/schemas/Money
+        mutualiseSpendAmount:
+          $ref: ./common/primitives.yaml#/components/schemas/Money
+        chosenPath:
+          type: string
+          enum: [mutualise, keepBuild, undecided]
+        estimateOnly:
+          type: boolean
+        rationale:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "COSTCOMPARE"
+        pkPatternTemplate: "COSTCOMPARE#${costCompareId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    CostCompareCreate:
+      type: object
+      required: [capabilityId, duplicateSpendAmount, mutualiseSpendAmount]
+      properties:
+        capabilityId:
+          type: string
+        duplicateSpendAmount:
+          $ref: ./common/primitives.yaml#/components/schemas/Money
+        mutualiseSpendAmount:
+          $ref: ./common/primitives.yaml#/components/schemas/Money
+        chosenPath:
+          type: string
+          enum: [mutualise, keepBuild, undecided]
+        estimateOnly:
+          type: boolean
+        rationale:
+          type: string
+    PartnershipContract:
+      type: object
+      required: [contractId, capabilityId, status, createdAt]
+      properties:
+        contractId:
+          $ref: '#/components/schemas/PartnershipContractId'
+        capabilityId:
+          type: string
+        experienceMapId:
+          type: string
+        status:
+          type: string
+          enum: [draft, executed, terminated, blockedGoLive]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "PARTNERSHIPCONTRACT"
+        pkPatternTemplate: "PARTNERSHIPCONTRACT#${contractId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    PartnershipContractCreate:
+      type: object
+      required: [capabilityId]
+      properties:
+        capabilityId:
+          type: string
+        experienceMapId:
+          type: string
+        status:
+          type: string
+          enum: [draft, executed, terminated, blockedGoLive]
+    PartnershipContractUpdate:
+      type: object
+      properties:
+        experienceMapId:
+          type: string
+        status:
+          type: string
+          enum: [draft, executed, terminated, blockedGoLive]
+    DecisionClassResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DecisionClass'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    DecisionClassListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DecisionClass'
+        nextCursor:
+          type: string
+    DecisionClassListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/DecisionClassListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    ProfitPoolHypothesisResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ProfitPoolHypothesis'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    ProfitPoolHypothesisListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfitPoolHypothesis'
+        nextCursor:
+          type: string
+    ProfitPoolHypothesisListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ProfitPoolHypothesisListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    CostCompareResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/CostCompare'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    CostCompareListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CostCompare'
+        nextCursor:
+          type: string
+    CostCompareListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/CostCompareListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    PartnershipContractResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PartnershipContract'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    PartnershipContractListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PartnershipContract'
+        nextCursor:
+          type: string
+    PartnershipContractListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PartnershipContractListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

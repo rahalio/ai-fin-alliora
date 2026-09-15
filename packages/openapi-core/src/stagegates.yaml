@@ -1,0 +1,202 @@
+openapi: 3.1.0
+info:
+  title: Alliora Stage gates
+  version: 0.1.0
+  description: |
+    Day-30/90/180 evidence gates. Pilots cannot renew on narrative alone (BR-5).
+  license:
+    name: Proprietary
+  x-domain: gat
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: StageGates
+    description: Evidence gates and kill or scale outcomes
+  - name: EvidencePacks
+    description: Materiality, economics, operational risk
+paths:
+  /v1/stage-gates:
+    get:
+      operationId: listStageGates
+      tags: [StageGates]
+      x-repository: StageGate
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, pass, kill, scale, extend]
+      responses:
+        '200':
+          description: Gates
+          content:
+            application/json:
+              schema:
+                $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createStageGate
+      tags: [StageGates]
+      x-repository: StageGate
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/stage-gates/{gateId}:
+    get:
+      operationId: getStageGate
+      tags: [StageGates]
+      x-repository: StageGate
+      parameters:
+        - name: gateId
+          in: path
+          required: true
+          schema:
+            $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateId
+      responses:
+        '200':
+          description: Gate
+          content:
+            application/json:
+              schema:
+                $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/stage-gates/{gateId}/evidence:
+    get:
+      operationId: getEvidencePack
+      tags: [EvidencePacks]
+      x-repository: EvidencePack
+      parameters:
+        - name: gateId
+          in: path
+          required: true
+          schema:
+            $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateId
+      responses:
+        '200':
+          description: Evidence
+          content:
+            application/json:
+              schema:
+                $ref: ./stagegates.schemas.yaml#/components/schemas/EvidencePackResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: submitEvidencePack
+      tags: [EvidencePacks]
+      summary: Submit switching materiality, unit economics, operational risk
+      x-repository: EvidencePack
+      parameters:
+        - name: gateId
+          in: path
+          required: true
+          schema:
+            $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./stagegates.schemas.yaml#/components/schemas/EvidencePackCreate
+      responses:
+        '201':
+          description: Attached
+          content:
+            application/json:
+              schema:
+                $ref: ./stagegates.schemas.yaml#/components/schemas/EvidencePackResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/stage-gates/{gateId}/outcome:
+    post:
+      operationId: decideStageGateOutcome
+      tags: [StageGates]
+      summary: Pass, kill, scale, or extend — blocked without evidence pack
+      x-repository: StageGate
+      parameters:
+        - name: gateId
+          in: path
+          required: true
+          schema:
+            $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateOutcomeRequest
+      responses:
+        '200':
+          description: Outcome recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./stagegates.schemas.yaml#/components/schemas/StageGateResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

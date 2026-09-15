@@ -1,0 +1,323 @@
+openapi: 3.1.0
+info:
+  title: Alliora Decisions
+  version: 0.1.0
+  description: |
+    Decision-class workflow, profit-pool hypotheses, cost-commoditisation compares, partnership contracts.
+  license:
+    name: Proprietary
+  x-domain: dcs
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Decisions
+    description: Mutualise, externalise, automate, build, invest, decline
+  - name: ProfitPools
+    description: Margin-shift hypotheses (BR-4)
+  - name: CostCompares
+    description: Mutualise vs duplicate spend (BR-7)
+  - name: PartnershipContracts
+    description: Contract status bound to experience maps
+paths:
+  /v1/decisions:
+    get:
+      operationId: listDecisionClasses
+      tags: [Decisions]
+      x-repository: DecisionClass
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Decisions
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/DecisionClassListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: recordDecisionClass
+      tags: [Decisions]
+      summary: Stamp decision class with named economic owner (BR-2)
+      x-repository: DecisionClass
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./decisions.schemas.yaml#/components/schemas/DecisionClassCreate
+      responses:
+        '201':
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/DecisionClassResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/decisions/{decisionId}:
+    get:
+      operationId: getDecisionClass
+      tags: [Decisions]
+      x-repository: DecisionClass
+      parameters:
+        - name: decisionId
+          in: path
+          required: true
+          schema:
+            $ref: ./decisions.schemas.yaml#/components/schemas/DecisionId
+      responses:
+        '200':
+          description: Decision
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/DecisionClassResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/profit-pool-hypotheses:
+    get:
+      operationId: listProfitPoolHypotheses
+      tags: [ProfitPools]
+      x-repository: ProfitPoolHypothesis
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Hypotheses
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/ProfitPoolHypothesisListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createProfitPoolHypothesis
+      tags: [ProfitPools]
+      summary: State who gains/loses margin before funding (BR-4)
+      x-repository: ProfitPoolHypothesis
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./decisions.schemas.yaml#/components/schemas/ProfitPoolHypothesisCreate
+      responses:
+        '201':
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/ProfitPoolHypothesisResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/profit-pool-hypotheses/{hypothesisId}/test:
+    post:
+      operationId: attachProfitPoolTest
+      tags: [ProfitPools]
+      summary: Attach post-gate test result
+      x-repository: ProfitPoolHypothesis
+      parameters:
+        - name: hypothesisId
+          in: path
+          required: true
+          schema:
+            $ref: ./decisions.schemas.yaml#/components/schemas/ProfitPoolId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./decisions.schemas.yaml#/components/schemas/ProfitPoolTestAttach
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/ProfitPoolHypothesisResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/cost-compares:
+    get:
+      operationId: listCostCompares
+      tags: [CostCompares]
+      x-repository: CostCompare
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Compares
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/CostCompareListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createCostCompare
+      tags: [CostCompares]
+      summary: Compare mutualise vs duplicate internal spend (BR-7)
+      x-repository: CostCompare
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./decisions.schemas.yaml#/components/schemas/CostCompareCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/CostCompareResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/partnership-contracts:
+    get:
+      operationId: listPartnershipContracts
+      tags: [PartnershipContracts]
+      x-repository: PartnershipContract
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Contracts
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/PartnershipContractListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createPartnershipContract
+      tags: [PartnershipContracts]
+      x-repository: PartnershipContract
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./decisions.schemas.yaml#/components/schemas/PartnershipContractCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/PartnershipContractResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/partnership-contracts/{contractId}:
+    patch:
+      operationId: updatePartnershipContract
+      tags: [PartnershipContracts]
+      x-repository: PartnershipContract
+      parameters:
+        - name: contractId
+          in: path
+          required: true
+          schema:
+            $ref: ./decisions.schemas.yaml#/components/schemas/PartnershipContractId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./decisions.schemas.yaml#/components/schemas/PartnershipContractUpdate
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: ./decisions.schemas.yaml#/components/schemas/PartnershipContractResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

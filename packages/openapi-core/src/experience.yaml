@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Alliora Experience
+  version: 0.1.0
+  description: |
+    Experience-ownership maps and structured manufacturer/distributor liability (BR-3, BR-11).
+  license:
+    name: Proprietary
+  x-domain: exp
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: ExperienceMaps
+    description: UX, brand, data, complaints, liability owners
+  - name: LiabilityTerms
+    description: Structured liability terms (not PDF-only)
+paths:
+  /v1/experience-maps:
+    get:
+      operationId: listExperienceOwnershipMaps
+      tags: [ExperienceMaps]
+      x-repository: ExperienceOwnershipMap
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+        - name: capabilityId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Maps
+          content:
+            application/json:
+              schema:
+                $ref: ./experience.schemas.yaml#/components/schemas/ExperienceOwnershipMapListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: createExperienceOwnershipMap
+      tags: [ExperienceMaps]
+      x-repository: ExperienceOwnershipMap
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./experience.schemas.yaml#/components/schemas/ExperienceOwnershipMapCreate
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: ./experience.schemas.yaml#/components/schemas/ExperienceOwnershipMapResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/experience-maps/{mapId}:
+    get:
+      operationId: getExperienceOwnershipMap
+      tags: [ExperienceMaps]
+      x-repository: ExperienceOwnershipMap
+      parameters:
+        - name: mapId
+          in: path
+          required: true
+          schema:
+            $ref: ./experience.schemas.yaml#/components/schemas/ExperienceMapId
+      responses:
+        '200':
+          description: Map
+          content:
+            application/json:
+              schema:
+                $ref: ./experience.schemas.yaml#/components/schemas/ExperienceOwnershipMapResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/experience-maps/{mapId}/liability:
+    post:
+      operationId: attachLiabilityTerms
+      tags: [LiabilityTerms]
+      summary: Attach structured liability; unsigned blocks go-live
+      x-repository: ExperienceOwnershipMap
+      parameters:
+        - name: mapId
+          in: path
+          required: true
+          schema:
+            $ref: ./experience.schemas.yaml#/components/schemas/ExperienceMapId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./experience.schemas.yaml#/components/schemas/LiabilityTermsCreate
+      responses:
+        '200':
+          description: Attached
+          content:
+            application/json:
+              schema:
+                $ref: ./experience.schemas.yaml#/components/schemas/ExperienceOwnershipMapResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/liability-terms/{liabilityId}/sign:
+    post:
+      operationId: signLiabilityTerms
+      tags: [LiabilityTerms]
+      x-repository: LiabilityTerms
+      parameters:
+        - name: liabilityId
+          in: path
+          required: true
+          schema:
+            $ref: ./experience.schemas.yaml#/components/schemas/LiabilityTermsId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Signed
+          content:
+            application/json:
+              schema:
+                $ref: ./experience.schemas.yaml#/components/schemas/LiabilityTermsResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

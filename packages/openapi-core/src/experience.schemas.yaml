@@ -1,0 +1,166 @@
+openapi: 3.1.0
+info:
+  title: Alliora experience schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    ExperienceMapId:
+      type: string
+      pattern: '^exp_[0-9A-HJKMNP-TV-Z]{26}$'
+    LiabilityTermsId:
+      type: string
+      pattern: '^lia_[0-9A-HJKMNP-TV-Z]{26}$'
+    OwnerParty:
+      type: string
+      enum: [bank, partner, coBrand, shared]
+    ExperienceOwnershipMap:
+      type: object
+      required: [mapId, capabilityId, journeyName, uxOwner, brandOwner, dataOwner, complaintsOwner, goLiveBlocked, createdAt]
+      properties:
+        mapId:
+          $ref: '#/components/schemas/ExperienceMapId'
+        capabilityId:
+          type: string
+        journeyName:
+          type: string
+        uxOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        brandOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        dataOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        complaintsOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        liabilityOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        liabilityTermsId:
+          type: string
+        goLiveBlocked:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "EXPERIENCEOWNERSHIPMAP"
+        pkPatternTemplate: "EXPERIENCEOWNERSHIPMAP#${mapId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    ExperienceOwnershipMapCreate:
+      type: object
+      required: [capabilityId, journeyName, uxOwner, brandOwner, dataOwner, complaintsOwner]
+      properties:
+        capabilityId:
+          type: string
+        journeyName:
+          type: string
+        uxOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        brandOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        dataOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        complaintsOwner:
+          $ref: '#/components/schemas/OwnerParty'
+        liabilityOwner:
+          $ref: '#/components/schemas/OwnerParty'
+    LiabilityTerms:
+      type: object
+      required: [liabilityId, mapId, manufacturerLiability, distributorLiability, signed]
+      properties:
+        liabilityId:
+          $ref: '#/components/schemas/LiabilityTermsId'
+        mapId:
+          $ref: '#/components/schemas/ExperienceMapId'
+        manufacturerLiability:
+          type: string
+        distributorLiability:
+          type: string
+        signed:
+          type: boolean
+        signedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "LIABILITYTERMS"
+        pkPatternTemplate: "LIABILITYTERMS#${liabilityId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    LiabilityTermsCreate:
+      type: object
+      required: [manufacturerLiability, distributorLiability]
+      properties:
+        manufacturerLiability:
+          type: string
+        distributorLiability:
+          type: string
+    ExperienceOwnershipMapResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ExperienceOwnershipMap'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    ExperienceOwnershipMapListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExperienceOwnershipMap'
+        nextCursor:
+          type: string
+    ExperienceOwnershipMapListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/ExperienceOwnershipMapListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+
+    LiabilityTermsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/LiabilityTerms'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    LiabilityTermsListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/LiabilityTerms'
+        nextCursor:
+          type: string
+    LiabilityTermsListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/LiabilityTermsListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

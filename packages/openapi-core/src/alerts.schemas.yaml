@@ -1,0 +1,91 @@
+openapi: 3.1.0
+info:
+  title: Alliora alert schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    PlatformRiskAlertId:
+      type: string
+      pattern: '^alt_[0-9A-HJKMNP-TV-Z]{26}$'
+    PlatformRiskAlert:
+      type: object
+      required: [alertId, capabilityId, severity, status, detail, raisedAt]
+      properties:
+        alertId:
+          $ref: '#/components/schemas/PlatformRiskAlertId'
+        capabilityId:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        status:
+          type: string
+          enum: [open, acknowledged, escalated, closed]
+        detail:
+          type: string
+        interfacePowerSignal:
+          type: string
+        raisedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "PLATFORMRISKALERT"
+        pkPatternTemplate: "PLATFORMRISKALERT#${alertId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    PlatformRiskAlertCreate:
+      type: object
+      required: [capabilityId, severity, detail]
+      properties:
+        capabilityId:
+          type: string
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        detail:
+          type: string
+        interfacePowerSignal:
+          type: string
+    PlatformRiskAlertEscalate:
+      type: object
+      required: [note]
+      properties:
+        note:
+          type: string
+    PlatformRiskAlertResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PlatformRiskAlert'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    PlatformRiskAlertListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlatformRiskAlert'
+        nextCursor:
+          type: string
+    PlatformRiskAlertListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PlatformRiskAlertListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

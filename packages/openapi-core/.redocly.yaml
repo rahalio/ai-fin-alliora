@@ -1,0 +1,38 @@
+apis:
+  identity:
+    root: src/identity.yaml
+  capabilities:
+    root: src/capabilities.yaml
+  decisions:
+    root: src/decisions.yaml
+  stagegates:
+    root: src/stagegates.yaml
+  experience:
+    root: src/experience.yaml
+  dependencies:
+    root: src/dependencies.yaml
+  alerts:
+    root: src/alerts.yaml
+  workforce:
+    root: src/workforce.yaml
+  reports:
+    root: src/reports.yaml
+
+extends:
+  - recommended
+
+rules:
+  no-unused-components: off
+  operation-4xx-response: warn
+  info-license: off
+  info-license-url: off
+  info-license-strict: off
+  operation-summary: warn
+  tag-description: off
+  operation-operationId: error
+  no-invalid-media-type-examples: off
+
+theme:
+  openapi:
+    generateCodeSamples:
+      languages: []

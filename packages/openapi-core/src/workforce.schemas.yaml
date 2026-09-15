@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Alliora workforce schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    BionicRoleMapId:
+      type: string
+      pattern: '^bio_[0-9A-HJKMNP-TV-Z]{26}$'
+    BionicRoleMap:
+      type: object
+      required: [mapId, capabilityId, roleName, treatment, hrSigned, scaleBlocked, createdAt]
+      properties:
+        mapId:
+          $ref: '#/components/schemas/BionicRoleMapId'
+        capabilityId:
+          type: string
+        roleName:
+          type: string
+        treatment:
+          type: string
+          enum: [augment, replace]
+        transitionFundingNote:
+          type: string
+        hrSigned:
+          type: boolean
+        conductSigned:
+          type: boolean
+        scaleBlocked:
+          type: boolean
+        signedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "BIONICROLEMAP"
+        pkPatternTemplate: "BIONICROLEMAP#${mapId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    BionicRoleMapCreate:
+      type: object
+      required: [capabilityId, roleName, treatment]
+      properties:
+        capabilityId:
+          type: string
+        roleName:
+          type: string
+        treatment:
+          type: string
+          enum: [augment, replace]
+        transitionFundingNote:
+          type: string
+    BionicRoleMapSignoff:
+      type: object
+      required: [hrSigned]
+      properties:
+        hrSigned:
+          type: boolean
+        conductSigned:
+          type: boolean
+    BionicRoleMapResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/BionicRoleMap'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    BionicRoleMapListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/BionicRoleMap'
+        nextCursor:
+          type: string
+    BionicRoleMapListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/BionicRoleMapListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

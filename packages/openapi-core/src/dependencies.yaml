@@ -1,0 +1,200 @@
+openapi: 3.1.0
+info:
+  title: Alliora Dependencies
+  version: 0.1.0
+  description: |
+    Systemically important tech inventory, concentration limits, exit plans, spend blocks (BR-6).
+  license:
+    name: Proprietary
+  x-domain: sit
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Dependencies
+    description: SIT inventory
+  - name: SitExceptions
+    description: Concentration limit exceptions
+paths:
+  /v1/dependencies:
+    get:
+      operationId: listSitDependencies
+      tags: [Dependencies]
+      x-repository: SitDependency
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Dependencies
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: registerSitDependency
+      tags: [Dependencies]
+      x-repository: SitDependency
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyCreate
+      responses:
+        '201':
+          description: Registered
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/dependencies/{dependencyId}:
+    get:
+      operationId: getSitDependency
+      tags: [Dependencies]
+      x-repository: SitDependency
+      parameters:
+        - name: dependencyId
+          in: path
+          required: true
+          schema:
+            $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyId
+      responses:
+        '200':
+          description: Dependency
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    patch:
+      operationId: updateSitDependency
+      tags: [Dependencies]
+      x-repository: SitDependency
+      parameters:
+        - name: dependencyId
+          in: path
+          required: true
+          schema:
+            $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyUpdate
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/dependencies/{dependencyId}/spend-block:
+    get:
+      operationId: getSitSpendBlock
+      tags: [Dependencies]
+      summary: Whether new spend is blocked (missing exit plan or limit breach)
+      x-repository: SitDependency
+      parameters:
+        - name: dependencyId
+          in: path
+          required: true
+          schema:
+            $ref: ./dependencies.schemas.yaml#/components/schemas/SitDependencyId
+      responses:
+        '200':
+          description: Spend-block status
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitSpendBlockResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/sit-exceptions:
+    get:
+      operationId: listSitLimitExceptions
+      tags: [SitExceptions]
+      x-repository: SitLimitException
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Exceptions
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitLimitExceptionListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: requestSitLimitException
+      tags: [SitExceptions]
+      x-repository: SitLimitException
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./dependencies.schemas.yaml#/components/schemas/SitLimitExceptionCreate
+      responses:
+        '201':
+          description: Requested
+          content:
+            application/json:
+              schema:
+                $ref: ./dependencies.schemas.yaml#/components/schemas/SitLimitExceptionResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '422':
+          $ref: ./common/responses.yaml#/components/responses/UnprocessableEntity
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth

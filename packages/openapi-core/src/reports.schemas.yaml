@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: Alliora report schemas
+  version: 0.1.0
+paths: {}
+components:
+  schemas:
+    PortfolioReportId:
+      type: string
+      pattern: '^rpt_[0-9A-HJKMNP-TV-Z]{26}$'
+    PortfolioReport:
+      type: object
+      required: [reportId, period, status, capabilityCount, killRate, sitConcentrationIndex, createdAt]
+      properties:
+        reportId:
+          $ref: '#/components/schemas/PortfolioReportId'
+        period:
+          type: string
+        status:
+          type: string
+          enum: [draft, published]
+        capabilityCount:
+          type: integer
+        killRate:
+          type: number
+          format: float
+        scaleRate:
+          type: number
+          format: float
+        forceCoverage:
+          type: object
+          additionalProperties:
+            type: integer
+        sitConcentrationIndex:
+          type: number
+          format: float
+        sitBreachCount:
+          type: integer
+        openPlatformAlerts:
+          type: integer
+        publishedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      x-dynamodb:
+        entityType: "PORTFOLIOREPORT"
+        pkPatternTemplate: "PORTFOLIOREPORT#${reportId}"
+        skPatternTemplate: "METADATA"
+        pkPattern: "entity"
+        createdAtField: "createdAt"
+        updatedAtField: "updatedAt"
+        softDeleteEnabled: false
+
+    PortfolioReportGenerate:
+      type: object
+      required: [period]
+      properties:
+        period:
+          type: string
+    PortfolioReportResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PortfolioReport'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta
+    PortfolioReportListData:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PortfolioReport'
+        nextCursor:
+          type: string
+    PortfolioReportListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: '#/components/schemas/PortfolioReportListData'
+        meta:
+          $ref: ./common/envelopes.yaml#/components/schemas/ResponseMeta

@@ -1,0 +1,120 @@
+openapi: 3.1.0
+info:
+  title: Alliora Reports
+  version: 0.1.0
+  description: |
+    Executive portfolio reporting: force coverage, kill rate, SIT — not logo vanity (BR-12).
+  license:
+    name: Proprietary
+  x-domain: rpt
+servers:
+  - url: http://127.0.0.1:4000
+    description: Local API
+security:
+  - apiKey: []
+  - bearerAuth: []
+tags:
+  - name: Reports
+    description: Exco / board packs
+paths:
+  /v1/reports/portfolio:
+    get:
+      operationId: getPortfolioReport
+      tags: [Reports]
+      x-repository: PortfolioReport
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            example: "2026-Q3"
+      responses:
+        '200':
+          description: Latest or period report
+          content:
+            application/json:
+              schema:
+                $ref: ./reports.schemas.yaml#/components/schemas/PortfolioReportResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/reports:
+    get:
+      operationId: listPortfolioReports
+      tags: [Reports]
+      x-repository: PortfolioReport
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/Cursor
+        - $ref: ./common/parameters.yaml#/components/parameters/Limit
+      responses:
+        '200':
+          description: Published reports
+          content:
+            application/json:
+              schema:
+                $ref: ./reports.schemas.yaml#/components/schemas/PortfolioReportListResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+    post:
+      operationId: generatePortfolioReport
+      tags: [Reports]
+      summary: Generate draft pack (force coverage, kill rate, SIT)
+      x-repository: PortfolioReport
+      parameters:
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: ./reports.schemas.yaml#/components/schemas/PortfolioReportGenerate
+      responses:
+        '201':
+          description: Draft generated
+          content:
+            application/json:
+              schema:
+                $ref: ./reports.schemas.yaml#/components/schemas/PortfolioReportResponse
+        '400':
+          $ref: ./common/responses.yaml#/components/responses/BadRequest
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+  /v1/reports/{reportId}/publish:
+    post:
+      operationId: publishPortfolioReport
+      tags: [Reports]
+      x-repository: PortfolioReport
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            $ref: ./reports.schemas.yaml#/components/schemas/PortfolioReportId
+        - $ref: ./common/parameters.yaml#/components/parameters/IdempotencyKey
+      responses:
+        '200':
+          description: Published
+          content:
+            application/json:
+              schema:
+                $ref: ./reports.schemas.yaml#/components/schemas/PortfolioReportResponse
+        '401':
+          $ref: ./common/responses.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: ./common/responses.yaml#/components/responses/NotFound
+        default:
+          $ref: ./common/responses.yaml#/components/responses/Problem
+
+components:
+  securitySchemes:
+    apiKey:
+      $ref: ./common/security.yaml#/components/securitySchemes/apiKey
+    bearerAuth:
+      $ref: ./common/security.yaml#/components/securitySchemes/bearerAuth
